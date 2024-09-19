@@ -1,0 +1,204 @@
+export TRAINING_TIME=72:00:00
+
+BEST_GPUS="(host='nefgpu28.inria.fr' or host='nefgpu37.inria.fr')"
+LAME_GPUS="(host='nefgpu47.inria.fr' or host='nefgpu48.inria.fr' or host='nefgpu49.inria.fr' or host='nefgpu50.inria.fr' or host='nefgpu51.inria.fr' or host='nefgpu34.inria.fr')"
+ANY_GPUS="(host='nefgpu28.inria.fr' or host='nefgpu37.inria.fr' or host='nefgpu34.inria.fr' or host='nefgpu47.inria.fr' or host='nefgpu48.inria.fr' or host='nefgpu49.inria.fr' or host='nefgpu50.inria.fr' or host='nefgpu51.inria.fr')"
+
+
+interact () {
+    oarsub -p "gpu='YES' and $BEST_GPUS" -l gpunum=${1:-1},walltime=$TRAINING_TIME -I
+}
+
+interact_a6000 () {
+    oarsub -p "gpu='YES' and host='nefgpu28.inria.fr'" -l gpunum=${1:-1},walltime=$TRAINING_TIME -I
+}
+
+interact_a100 () {
+    oarsub -p "gpu='YES' and (host='nefgpu56.inria.fr' or host='nefgpu57.inria.fr' or host='nefgpu58.inria.fr')" -l gpunum=${1:-1},walltime=$TRAINING_TIME -t besteffort -I
+}
+
+interact_rtx8000 () {
+    oarsub -p "gpu='YES' and host='nefgpu37.inria.fr'" -l gpunum=${1:-4},walltime=$TRAINING_TIME -I
+}
+
+interact_lame () {
+    oarsub -p "gpu='YES' and $LAME_GPUS" -t besteffort -l gpunum=1,walltime=$TRAINING_TIME -I
+}
+
+interact_any () {
+    oarsub -p "gpu='YES'" -t besteffort -l gpunum=1,walltime=$TRAINING_TIME -I
+}
+
+interact_4 () {
+    oarsub -p "gpu='YES'" -t besteffort -l gpunum=4,walltime=$TRAINING_TIME -I
+}
+
+train () {
+    oarsub -p "gpu='YES' and $BEST_GPUS" -l gpunum=1,walltime=$TRAINING_TIME --stdout="%jobname%-%jobid%.std" --stderr="%jobname%-%jobid%.std" "date; nvidia-smi; bash train.sh"
+}
+
+q_a6000 () {
+    oarsub -p "gpu='YES' and host='nefgpu28.inria.fr'" --n $1 -l gpunum=1,walltime=$TRAINING_TIME --stdout="%jobname%-%jobid%.std" --stderr="%jobname%-%jobid%.std" "bash ${@}"
+}
+
+q_a100 () {
+    oarsub -p "gpu='YES' and (host='nefgpu56.inria.fr' or host='nefgpu57.inria.fr' or host='nefgpu58.inria.fr')" --n $1 -l gpunum=1,walltime=$TRAINING_TIME --stdout="%jobname%-%jobid%.std" --stderr="%jobname%-%jobid%.std" -t besteffort "bash ${@}"
+}
+
+q2_a100 () {
+    oarsub -p "gpu='YES' and (host='nefgpu56.inria.fr' or host='nefgpu57.inria.fr' or host='nefgpu58.inria.fr')" --n $1 -l gpunum=2,walltime=$TRAINING_TIME --stdout="%jobname%-%jobid%.std" --stderr="%jobname%-%jobid%.std" -t besteffort "bash ${@}"
+}
+
+q2_a40 () {
+    oarsub -p "gpu='YES' and (host='nefgpu52.inria.fr' or host='nefgpu53.inria.fr' or host='nefgpu54.inria.fr' or host='nefgpu55.inria.fr' or host='nefgpu59.inria.fr')" --n $1 -l gpunum=2,walltime=$TRAINING_TIME --stdout="%jobname%-%jobid%.std" --stderr="%jobname%-%jobid%.std" -t besteffort "bash ${@}"
+}
+
+q2_a6000 () {
+    oarsub -p "gpu='YES' and host='nefgpu28.inria.fr'" --n $1 -l gpunum=2,walltime=$TRAINING_TIME --stdout="%jobname%-%jobid%.std" --stderr="%jobname%-%jobid%.std" "bash ${@}"
+}
+
+q4_a6000 () {
+    oarsub -p "gpu='YES' and host='nefgpu28.inria.fr'" --n $1 -l gpunum=4,walltime=$TRAINING_TIME --stdout="%jobname%-%jobid%.std" --stderr="%jobname%-%jobid%.std" "bash ${@}"
+}
+
+q_cpu () {
+    oarsub -l walltime=$TRAINING_TIME --n $1 --stdout="%jobname%-%jobid%.std" --stderr="%jobname%-%jobid%.std" "python ${*}"
+}
+
+sq () {
+    oarstat -u | tee queue.log 
+}
+
+jobname () {
+    oarstat -j $1 -f | grep name | head -n 1
+}
+
+usage () {
+    quota -s
+}
+
+attach () {
+    oarsub -C $1
+}
+
+clearall () {
+    sq | tail -n +3 | awk '$2 != "ypoirier" {print $1}'
+}
+
+exp_a6000 () {
+    q_a6000 launch_384x256_flash_dir_no_fix.sh
+}
+
+exp_a100 () {
+    q_a100 launch_384x256_flash_dir_no_fix.sh
+}
+
+q_a6000_sample () {
+    oarsub -p "gpu='YES' and host='nefgpu28.inria.fr'" --n $1 -l gpunum=1,walltime=$TRAINING_TIME --stdout="%jobid%.std" --stderr="%jobid%.std" "python sample_dataset.py --scenes $1"
+}
+
+q_a6000_sample_colmap () {
+    oarsub -p "gpu='YES' and host='nefgpu28.inria.fr'" --n $1 -l gpunum=1,walltime=$TRAINING_TIME --stdout="%jobid%.std" --stderr="%jobid%.std" "python sample_dataset.py --scenes $1 --splits train"
+}
+
+q_a40_sample_colmap () {
+    oarsub -p "gpu='YES' and (host='nefgpu52.inria.fr' or host='nefgpu53.inria.fr' or host='nefgpu54.inria.fr' or host='nefgpu55.inria.fr' or host='nefgpu59.inria.fr')" -t besteffort --n $1 -l gpunum=1,walltime=$TRAINING_TIME --stdout="%jobid%.std" --stderr="%jobid%.std" "python sample_dataset.py --scenes $1"
+}
+
+q_a40_refine () {
+    oarsub -p "gpu='YES' and (host='nefgpu52.inria.fr' or host='nefgpu53.inria.fr' or host='nefgpu54.inria.fr' or host='nefgpu55.inria.fr' or host='nefgpu59.inria.fr')" -t besteffort --n $1 -l gpunum=1,walltime=$TRAINING_TIME --stdout="%jobid%.std" --stderr="%jobid%.std" "python refine_samples.py --scenes $1"
+}
+
+_ () {
+    for scene in colmap/real*/*; do q_a40_sample_colmap $scene; done
+}
+
+_ () {
+    for scene in colmap/real*/*; do q_a40_refine $scene; done
+}
+
+colmap2nerf () {
+    for scene in $(ls colmap); do 
+        python colmap2nerf.py --text colmap/$scene/train/txt --images colmap/$scene/train/images
+        mv transforms.json colmap/$scene/train/transforms_train.json
+    done
+}
+
+qmyreal () {
+    for scene in rs_garage_wall_night rs_paintgun_night rs_santa_day; do 
+        oarsub -p "gpu='YES' and host='nefgpu28.inria.fr'" --n $scene -l gpunum=1,walltime=$TRAINING_TIME --stdout="%jobid%.std" --stderr="%jobid%.std" "python sample_dataset.py --scenes colmap/$scene --splits train; conda activate rg-eval; python fix_samples.py --root_dir colmap --splits train --scenes $scene"
+    done
+    #  
+    oarsub -p "gpu='YES' and host='nefgpu28.inria.fr'" --n rs_bowls_day -l gpunum=1,walltime=$TRAINING_TIME --stdout="%jobid%.std" --stderr="%jobid%.std" "python sample_dataset.py --scenes colmap/rs_bowls_day --splits train --gain_factor 1.25; conda activate rg-eval; python fix_samples.py --root_dir colmap --splits train --scenes rs_bowls_day"
+}
+
+qmyfake () {
+    for scene in $(ls renders_tonemapped); do 
+        oarsub -p "gpu='YES' and host='nefgpu28.inria.fr'" --n $scene -l gpunum=1,walltime=$TRAINING_TIME --stdout="%jobname%-%jobid%.std" --stderr="%jobname%-%jobid%.std" "conda activate rg-eval; python sample_dataset.py --scenes renders_tonemapped/$scene; python fix_samples.py --scenes $scene"
+    done
+}
+
+verify_sample_count () {
+    for path in controlnet_samples/*/*_raw/train/color; do echo $(echo $path | cut -d/ -f 3) $(ls $path | wc -l) $(
+ls ${path/_raw/_refined} | wc -l); done
+}
+
+sample_arcs () {
+    for scene in tmp/good_scenes/*_pred.png; do scene=${scene/_pred.png/.png}; q a40 <<< "python3 sample_light_arc.py --scenes $scene --label ${scene}_rescaled"; done
+}
+
+sample_syn () {
+    q a40 <<< "python sample_dataset_halfres.py --scenes colmap/synthetic/easy_bedroom"
+    q a40 <<< "python sample_dataset_halfres.py --scenes colmap/synthetic/easy_kitchen"
+    q a40 <<< "python sample_dataset_halfres.py --scenes colmap/synthetic/easy_livingroom"
+    q a40 <<< "python sample_dataset_halfres.py --scenes colmap/synthetic/easy_office"
+
+    q a40 <<< "python sample_dataset_halfres.py --scenes colmap/synthetic/hard_bedroom"
+    q a40 <<< "python sample_dataset_halfres.py --scenes colmap/synthetic/hard_kitchen"
+    q a40 <<< "python sample_dataset_halfres.py --scenes colmap/synthetic/hard_livingroom"
+    q a40 <<< "python sample_dataset_halfres.py --scenes colmap/synthetic/hard_office"
+}
+
+sample_syn_hq () {
+    q a6000 <<< "python sample_dataset_synthetic_fullres.py --scenes colmap/synthetic_hq/hard_bedroom"
+    q a6000 <<< "python sample_dataset_synthetic_fullres.py --scenes colmap/synthetic_hq/hard_kitchen"
+    q a6000 <<< "python sample_dataset_synthetic_fullres.py --scenes colmap/synthetic_hq/hard_livingroom"
+    q a6000 <<< "python sample_dataset_synthetic_fullres.py --scenes colmap/synthetic_hq/hard_office"
+}
+
+sample_syn_flicker () { #!!!!!!
+    q a40 <<< "python sample_dataset_synthetic_fullres.py --scenes colmap/synthetic_hq/hard_bedroom --mode global --suffix flicker --splits test --dirs 23 14 18 10"
+    q a40 <<< "python sample_dataset_synthetic_fullres.py --scenes colmap/synthetic_hq/hard_kitchen --mode global --suffix flicker --splits test --dirs 23 14 18 10"
+    q a40 <<< "python sample_dataset_synthetic_fullres.py --scenes colmap/synthetic_hq/hard_livingroom --mode global --suffix flicker --splits test --dirs 23 14 18 10"
+    q a40 <<< "python sample_dataset_synthetic_fullres.py --scenes colmap/synthetic_hq/hard_office --mode global --suffix flicker --splits test --dirs 23 14 18 10"
+}
+
+# q a40 <<< "python sample_dataset_synthetic_fullres.py --scenes colmap/synthetic_hq/hard_bedroom --mode global --suffix flicker --splits test --dirs 6"
+
+sample_hq () {
+    q a40 <<< "python sample_dataset.py --scenes colmap/real/paintgun"
+    q a40 <<< "python sample_dataset.py --scenes colmap/real/garagewall"
+    
+    q a40 <<< "python sample_dataset.py --scenes colmap/real_multilight/chestdrawer_2"
+    q a40 <<< "python sample_dataset.py --scenes colmap/real_multilight/kettle_2"
+    q a40 <<< "python sample_dataset.py --scenes colmap/real_multilight/pans_2"
+
+    q a100 <<< "python sample_dataset.py --scenes colmap/vendored/mipnerf_counter"
+    q a100 <<< "python sample_dataset.py --scenes colmap/vendored/mipnerf_room"
+
+    q a6000 <<< "python sample_dataset.py --scenes colmap/debug/kettle_1"
+    q a6000 <<< "python sample_dataset.py --scenes colmap/debug/kettle_3"
+}
+
+refine_all () {
+    for scene in colmap/{real*,vend*,synthetic_hq}/*; do q a6000 <<< "python refine_samples.py --scenes $scene"; done
+}
+
+refine_all_flicker () {
+    for scene in colmap/synthetic_hq/hard_*; do q a40 <<< "python refine_samples.py --scenes $scene --samples_dir controlnet_samplesflicker --splits test"; done
+}
+
+# for scene in colmap/synthetic_hq/hard_*; do python refine_samples.py --scenes $scene --samples_dir controlnet_samplesflicker --splits test --dirs 23 14 18 10; done
+
+# python refine_samples.py --scenes colmap/debug/kettle_1
+# python refine_samples.py --scenes colmap/debug/kettle_3

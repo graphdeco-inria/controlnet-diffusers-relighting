@@ -1,0 +1,6 @@
+{
+    "python.analysis.extraPaths": [
+      "multi_illumination",
+      "diffusers/src"
+    ]
+}

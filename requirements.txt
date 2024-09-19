@@ -1,0 +1,12 @@
+torch==2.3.0
+torchvision==0.18.0
+tyro==0.8.4
+aim==3.19.3
+huggingface_hub==0.23.1
+transformers==4.41.0
+accelerate==0.30.1
+opencv-python==4.9.0.80
+kornia==0.7.2
+scipy==1.13.1
+ipython # optional
+ipdb # optional

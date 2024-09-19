@@ -1,0 +1,2 @@
+nvidia-smi
+accelerate launch --mixed_precision bf16 train_decoder.py --output_dir=output/${BASH_SOURCE/launch_/}/$(date -Ins) --validation_image {everett_kitchen{5,9},everett_lobby{1,16}}_dir_{23,14,18,10}.jpg --images_dir multilum_images/1536x1024 --max_train_steps 50000 "${@}"
