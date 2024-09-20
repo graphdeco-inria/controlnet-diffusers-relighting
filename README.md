@@ -1,5 +1,5 @@
 # ControlNet Single-Image Relighting
-This is the secondary repository of our work "A Diffusion Approach to Radiance Field Relighting using Multi-Illumination Synthesis".
+This is the secondary repository of our work "A Diffusion Approach to Radiance Field Relighting using Multi-Illumination Synthesis". 
 The main repository is available at (https://github.com/graphdeco-inria/generative-radiance-field-relighting); this repository contains code for the 2D single-image relighting network we describe in the paper. 
 To use our method for relightable novel-view synthesis with Gaussian Splatting, you will first need to setup this codebase and use it to transform your single-illumination capture into a (generated) multi-illumination capture. 
 
@@ -157,6 +157,4 @@ Please cite us with:
       ISSN = {1467-8659},
       DOI = {10.1111/cgf.15147}
     }
-
-
- todo: have one last look for unused files + the ignore, make sure its all good online
+```
