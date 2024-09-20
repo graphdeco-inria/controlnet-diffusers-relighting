@@ -25,10 +25,11 @@ __pycache__
 /.aim/
 OAR.*.stderr
 /.envrc
+/.cmdrc
 OAR.*.stdout
 *.std
 /queue.log
-/colmap 
+colmap 
 /multilum_images
 
 /PROTOCOL.md
